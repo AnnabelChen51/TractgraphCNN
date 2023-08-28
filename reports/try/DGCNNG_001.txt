@@ -1,0 +1,24 @@
+Namespace(inputDirectory='data', outputDirectory='try', DisFile='data/dis_sort_roi2.npy', task='sex', type='binary', feature=['Nos', 'FA1'], CUDA_id='0', data_id='0', dataset='Classification', norm=True, channels=1, epochs=200, tensorboard=True, net_architecture='DGCNNG', batch_size=32, rate=0.0001, weight=0.0, sched_step=100, sched_gamma=0.1, printing_frequency=1, seed=1, alpha=0, remix_kappa=0, remix_tau=0, loss='CE', sigma=0, k=20)
+Training the 'DGCNNG' architecture
+
+The following parameters are used:
+Batch size:	32
+Number of workers:	0
+Learning rate:	0.0001
+Weight decay:	0.0
+Scheduler steps:	100
+Scheduler gamma:	0.1
+Number of epochs of training:	200
+Number of input channels:	1
+
+Data preparation
+Reading data from:	./data
+Training set size:	7473
+Validation set size:	1869
+
+Performing calculations on:	cuda:0
+
+Pretraining:	Epoch 1/200
+----------
+training:	Epoch: [1][1/233]	Loss 0.7684 (0.7684)	
+training:	Epoch: [1][2/233]	Loss 0.7724 (0.7704)	

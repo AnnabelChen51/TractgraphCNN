@@ -1,0 +1,127 @@
+Namespace(inputDirectory='data', outputDirectory='try', task='sex', type='binary', feature=['Nos', 'FA1'], CUDA_id='0', data_id='0', dataset='Classification', norm=True, channels=1, epochs=200, tensorboard=True, net_architecture='CNN_1D', batch_size=128, rate=0.0001, weight=0.0, sched_step=100, sched_gamma=0.1, printing_frequency=1, seed=1, alpha=0, remix_kappa=0, remix_tau=0, loss='CE', sigma=0, k=20)
+Training the 'CNN_1D' architecture
+
+The following parameters are used:
+Batch size:	128
+Number of workers:	0
+Learning rate:	0.0001
+Weight decay:	0.0
+Scheduler steps:	100
+Scheduler gamma:	0.1
+Number of epochs of training:	200
+Number of input channels:	1
+
+Data preparation
+Reading data from:	./data
+Training set size:	6538
+Validation set size:	1869
+
+Performing calculations on:	cuda:0
+
+Pretraining:	Epoch 1/200
+----------
+training:	Epoch: [1][1/51]	Loss 0.7693 (0.7693)	
+training:	Epoch: [1][2/51]	Loss 0.7798 (0.7746)	
+training:	Epoch: [1][3/51]	Loss 0.7400 (0.7630)	
+training:	Epoch: [1][4/51]	Loss 0.6868 (0.7440)	
+training:	Epoch: [1][5/51]	Loss 0.6689 (0.7290)	
+training:	Epoch: [1][6/51]	Loss 0.7378 (0.7304)	
+training:	Epoch: [1][7/51]	Loss 0.6935 (0.7252)	
+training:	Epoch: [1][8/51]	Loss 0.6598 (0.7170)	
+training:	Epoch: [1][9/51]	Loss 0.6982 (0.7149)	
+training:	Epoch: [1][10/51]	Loss 0.6753 (0.7109)	
+training:	Epoch: [1][11/51]	Loss 0.6266 (0.7033)	
+training:	Epoch: [1][12/51]	Loss 0.7414 (0.7065)	
+training:	Epoch: [1][13/51]	Loss 0.5896 (0.6975)	
+training:	Epoch: [1][14/51]	Loss 0.6178 (0.6918)	
+training:	Epoch: [1][15/51]	Loss 0.7411 (0.6951)	
+training:	Epoch: [1][16/51]	Loss 0.5837 (0.6881)	
+training:	Epoch: [1][17/51]	Loss 0.5585 (0.6805)	
+training:	Epoch: [1][18/51]	Loss 0.7138 (0.6823)	
+training:	Epoch: [1][19/51]	Loss 0.6061 (0.6783)	
+training:	Epoch: [1][20/51]	Loss 0.6435 (0.6766)	
+training:	Epoch: [1][21/51]	Loss 0.4920 (0.6678)	
+training:	Epoch: [1][22/51]	Loss 0.5953 (0.6645)	
+training:	Epoch: [1][23/51]	Loss 0.6404 (0.6634)	
+training:	Epoch: [1][24/51]	Loss 0.5840 (0.6601)	
+training:	Epoch: [1][25/51]	Loss 0.5582 (0.6561)	
+training:	Epoch: [1][26/51]	Loss 0.6443 (0.6556)	
+training:	Epoch: [1][27/51]	Loss 0.7267 (0.6582)	
+training:	Epoch: [1][28/51]	Loss 0.6640 (0.6584)	
+training:	Epoch: [1][29/51]	Loss 0.6049 (0.6566)	
+training:	Epoch: [1][30/51]	Loss 0.6901 (0.6577)	
+training:	Epoch: [1][31/51]	Loss 0.5595 (0.6545)	
+training:	Epoch: [1][32/51]	Loss 0.5603 (0.6516)	
+training:	Epoch: [1][33/51]	Loss 0.5712 (0.6492)	
+training:	Epoch: [1][34/51]	Loss 0.6362 (0.6488)	
+training:	Epoch: [1][35/51]	Loss 0.5737 (0.6466)	
+training:	Epoch: [1][36/51]	Loss 0.7052 (0.6483)	
+training:	Epoch: [1][37/51]	Loss 0.5999 (0.6470)	
+training:	Epoch: [1][38/51]	Loss 0.6287 (0.6465)	
+training:	Epoch: [1][39/51]	Loss 0.6954 (0.6477)	
+training:	Epoch: [1][40/51]	Loss 0.5282 (0.6447)	
+training:	Epoch: [1][41/51]	Loss 0.6171 (0.6441)	
+training:	Epoch: [1][42/51]	Loss 0.5432 (0.6417)	
+training:	Epoch: [1][43/51]	Loss 0.5927 (0.6405)	
+training:	Epoch: [1][44/51]	Loss 0.4948 (0.6372)	
+training:	Epoch: [1][45/51]	Loss 0.4996 (0.6342)	
+training:	Epoch: [1][46/51]	Loss 0.6523 (0.6345)	
+training:	Epoch: [1][47/51]	Loss 0.5933 (0.6337)	
+training:	Epoch: [1][48/51]	Loss 0.5444 (0.6318)	
+training:	Epoch: [1][49/51]	Loss 0.5528 (0.6302)	
+training:	Epoch: [1][50/51]	Loss 0.5473 (0.6285)	
+training:	Epoch: [1][51/51]	Loss 0.5505 (0.6270)	
+Training:	 Loss: 0.6261
+
+Training:	 ACC: 0.6793 0.6669 0.3739 0.9847
+Validation:	 ACC: 0.6708 0.6570 0.3675 0.9742
+Validation:	 Best_BACC: 0.6708 0.6570 0.3675 0.9742
+Validation:	 Loss: 0.5934
+Pretraining:	Epoch 2/200
+----------
+training:	Epoch: [2][1/51]	Loss 0.5036 (0.5036)	
+training:	Epoch: [2][2/51]	Loss 0.5561 (0.5299)	
+training:	Epoch: [2][3/51]	Loss 0.5936 (0.5511)	
+training:	Epoch: [2][4/51]	Loss 0.5466 (0.5500)	
+training:	Epoch: [2][5/51]	Loss 0.5263 (0.5453)	
+training:	Epoch: [2][6/51]	Loss 0.5108 (0.5395)	
+training:	Epoch: [2][7/51]	Loss 0.5326 (0.5385)	
+training:	Epoch: [2][8/51]	Loss 0.5001 (0.5337)	
+training:	Epoch: [2][9/51]	Loss 0.5489 (0.5354)	
+training:	Epoch: [2][10/51]	Loss 0.5136 (0.5332)	
+training:	Epoch: [2][11/51]	Loss 0.5112 (0.5312)	
+training:	Epoch: [2][12/51]	Loss 0.4613 (0.5254)	
+training:	Epoch: [2][13/51]	Loss 0.5899 (0.5304)	
+training:	Epoch: [2][14/51]	Loss 0.5510 (0.5318)	
+training:	Epoch: [2][15/51]	Loss 0.3966 (0.5228)	
+training:	Epoch: [2][16/51]	Loss 0.4763 (0.5199)	
+training:	Epoch: [2][17/51]	Loss 0.4267 (0.5144)	
+training:	Epoch: [2][18/51]	Loss 0.5428 (0.5160)	
+training:	Epoch: [2][19/51]	Loss 0.5937 (0.5201)	
+training:	Epoch: [2][20/51]	Loss 0.5273 (0.5205)	
+training:	Epoch: [2][21/51]	Loss 0.5527 (0.5220)	
+training:	Epoch: [2][22/51]	Loss 0.5178 (0.5218)	
+training:	Epoch: [2][23/51]	Loss 0.5184 (0.5217)	
+training:	Epoch: [2][24/51]	Loss 0.5491 (0.5228)	
+training:	Epoch: [2][25/51]	Loss 0.5052 (0.5221)	
+training:	Epoch: [2][26/51]	Loss 0.5776 (0.5242)	
+training:	Epoch: [2][27/51]	Loss 0.5404 (0.5248)	
+training:	Epoch: [2][28/51]	Loss 0.5040 (0.5241)	
+training:	Epoch: [2][29/51]	Loss 0.5060 (0.5235)	
+training:	Epoch: [2][30/51]	Loss 0.4710 (0.5217)	
+training:	Epoch: [2][31/51]	Loss 0.5515 (0.5227)	
+training:	Epoch: [2][32/51]	Loss 0.5214 (0.5226)	
+training:	Epoch: [2][33/51]	Loss 0.4977 (0.5219)	
+training:	Epoch: [2][34/51]	Loss 0.4667 (0.5203)	
+training:	Epoch: [2][35/51]	Loss 0.4885 (0.5193)	
+training:	Epoch: [2][36/51]	Loss 0.4795 (0.5182)	
+training:	Epoch: [2][37/51]	Loss 0.5674 (0.5196)	
+training:	Epoch: [2][38/51]	Loss 0.5559 (0.5205)	
+training:	Epoch: [2][39/51]	Loss 0.4763 (0.5194)	
+training:	Epoch: [2][40/51]	Loss 0.5320 (0.5197)	
+training:	Epoch: [2][41/51]	Loss 0.4266 (0.5174)	
+training:	Epoch: [2][42/51]	Loss 0.4986 (0.5170)	
+training:	Epoch: [2][43/51]	Loss 0.5576 (0.5179)	
+training:	Epoch: [2][44/51]	Loss 0.4763 (0.5170)	
+training:	Epoch: [2][45/51]	Loss 0.5381 (0.5175)	
+training:	Epoch: [2][46/51]	Loss 0.5261 (0.5176)	
