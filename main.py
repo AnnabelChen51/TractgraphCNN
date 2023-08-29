@@ -64,7 +64,7 @@ if __name__ == '__main__':
     parser.add_argument('--channels', default=1, type=int, help='number of input channels')
     parser.add_argument('--epochs', default=400, type=int, help='training epochs')
     parser.add_argument('--tensorboard', default=True, type=bool, help='export training stats to tensorboard')
-    parser.add_argument('--net_architecture', default='DGCNN', choices=['CNN_1D','DGCNN','DGCNNs','GCN','GCN1','PointNet','PointTrans','PointTrans1','Braingnn','DGCNNG'], help='network architecture used')
+    parser.add_argument('--net_architecture', default='TractGraphormer', choices=['CNN_1D','DGCNN','TractGraphormer','TractGraphormerG','GCN','GCN1','PointNet','PointTrans','PointTrans1','Braingnn','DGCNNG'], help='network architecture used')
     parser.add_argument('--batch_size', default=16, type=int, help='batch size')
     parser.add_argument('--rate', default=0.0001, type=float, help='learning rate')
     parser.add_argument('--weight', default=0.000, type=float, help='weight decay for clustering')
@@ -301,13 +301,13 @@ if __name__ == '__main__':
         to_eval = "nets." + model_name + "(input_channel=channels,input_len=X.shape[1],num_classses=num_class)"
     elif args.net_architecture=='PointNet':
         to_eval = "nets." + model_name + "(input_channel=channels,num_classses=num_class)"
-    elif args.net_architecture=='DGCNN' or args.net_architecture=='DGCNNs':
+    elif args.net_architecture=='DGCNN' or args.net_architecture=='DGCNNs' or args.net_architecture=='TractGraphormer':
         idx_matrix = numpy.load('data/distance_id_sort_dis.npy')
         idx = idx_matrix[:, :args.k]
         idx=torch.from_numpy(idx).to(device)
         idx = idx.repeat(batch, 1, 1)
         to_eval = "nets." + model_name + "(input_channel=channels,input_len=X.shape[1],num_classses=num_class,k=args.k,idx=idx)"
-    elif args.net_architecture == 'DGCNNAG' or args.net_architecture == 'DGCNNG' or args.net_architecture == 'DGCNNAMG':
+    elif args.net_architecture == 'DGCNNAG' or args.net_architecture == 'DGCNNG' or args.net_architecture == 'DGCNNAMG' or args.net_architecture=='TractGraphormerG':
         idx = numpy.load(args.DisFile)
         print('load ' + args.DisFile)
         # idx1 =numpy.load('data/dis_sort_roi2.npy') #roi
@@ -372,6 +372,16 @@ if __name__ == '__main__':
     get_parameter_number(model)
 
     model = model.to(device)
+
+    #load pretrained model
+    model_dict = model.state_dict()
+    model_pre=torch.load('/home/yuqian/hdrive/tabular-dl-revisiting-models/reproduce/ft_transformer_EP/checkpoint.pt')
+    pretrained_dict=model_pre['model']
+    dict_dis=['transformer.layers.0.key_compression.weight','transformer.layers.0.value_compression.weight','transformer.head.weight','transformer.head.bias']
+    loaded_dict = {('transformer.'+ k): v for k, v in pretrained_dict.items() if ('transformer.'+ k) in model_dict and ('transformer.'+ k) not in dict_dis}
+    model_dict.update(loaded_dict)
+    model.load_state_dict(model_dict)
+
     #model = torch.nn.DataParallel(model, device_ids=[0, 1, 2,3])
     #criteria = nn.NLLLoss(size_average=True)
     if args.loss=='CE':
@@ -396,6 +406,6 @@ if __name__ == '__main__':
     elif args.loss == 'CDT':
         criteria = CDT(num_class_list=[class_num_list[0], class_num_list[1], class_num_list[2]], gamma = 0.4, device=device)
 
-    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=rate, weight_decay=weight)
+    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=rate, weight_decay=args.weight)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=sched_step, gamma=sched_gamma)
     training_functions.train_model(model,dataloader,dataloadert,dataloaderv,criteria,optimizer,scheduler,epochs,params,class_num_list)

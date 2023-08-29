@@ -1,0 +1,20 @@
+Namespace(inputDirectory='data', outputDirectory='try', DisFile='data/dis_sort_roi2dis2000.npy', task='sex', type='binary', feature=['Nos', 'FA1'], CUDA_id='0', data_id='0', dataset='Classification', norm=True, channels=1, epochs=400, tensorboard=True, net_architecture='TractGraphormer', batch_size=16, rate=0.0001, weight=0.0, sched_step=200, sched_gamma=0.1, printing_frequency=1, seed=0, alpha=0, remix_kappa=0, remix_tau=0, loss='CE', sigma=0, k=20)
+Training the 'TractGraphormer' architecture
+
+The following parameters are used:
+Batch size:	16
+Number of workers:	0
+Learning rate:	0.0001
+Weight decay:	0.0
+Scheduler steps:	200
+Scheduler gamma:	0.1
+Number of epochs of training:	400
+Number of input channels:	1
+
+Data preparation
+Reading data from:	./data
+Training set size:	6538
+Validation set size:	1869
+
+Performing calculations on:	cuda:0
+
