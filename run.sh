@@ -96,6 +96,7 @@ export PROJECT_DIR=/home/yuqian/hdrive/tabular-dl-revisiting-models
 #python main.py --feature Nos FA1 -outdir 0829 --loss CE --type binary --task sex --net_architecture TractGraphormer --batch_size 32 --sched_step 300 --epochs 200 --rate 0.0001 --k 20 --seed 1 #replace cv compression
 #python main.py --feature Nos FA1 -outdir 0829 --loss CE --type binary --task sex --net_architecture TractGraphormer --batch_size 32 --sched_step 300 --epochs 200 --rate 0.00001 --k 20 --seed 1 #replace cv compression
 #python main.py --feature Nos FA1 -outdir 0829 --loss CE --type binary --task sex --net_architecture TractGraphormer --batch_size 32 --sched_step 300 --epochs 200 --rate 0.0001 --k 20 --seed 1 #replace cv compression
-python main.py --feature Nos FA1 -outdir 0829 --loss CE --type binary --task sex --net_architecture DGCNN --batch_size 32 --sched_step 100 --epochs 200 --rate 0.000001 --k 22 --seed 1 # data aug 22
-
+#python main.py --feature Nos FA1 -outdir 0829 --loss CE --type binary --task sex --net_architecture DGCNN --batch_size 32 --sched_step 100 --epochs 200 --rate 0.000001 --k 22 --seed 1 # data aug 22
+#python main.py --feature Nos FA1 -outdir 0829 --loss CE --type binary --task sex --net_architecture TractGraphormer --batch_size 32 --sched_step 300 --epochs 200 --rate 0.00001 --k 20 --seed 1
+python main.py --feature Nos FA1 -outdir 0829 --loss CE --type binary --task sex --net_architecture TractGraphormer --batch_size 32 --sched_step 300 --epochs 200 --rate 0.00001 --k 20 --seed 1 #remove ffn
 #parameters to turn: lr,n_head,len_feature

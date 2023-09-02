@@ -65,7 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', default=400, type=int, help='training epochs')
     parser.add_argument('--tensorboard', default=True, type=bool, help='export training stats to tensorboard')
     parser.add_argument('--net_architecture', default='TractGraphormer', choices=['CNN_1D','DGCNN','TractGraphormer','TractGraphormerG','GCN','GCN1','PointNet','PointTrans','PointTrans1','Braingnn','DGCNNG'], help='network architecture used')
-    parser.add_argument('--batch_size', default=16, type=int, help='batch size')
+    parser.add_argument('--batch_size', default=32, type=int, help='batch size')
     parser.add_argument('--rate', default=0.0001, type=float, help='learning rate')
     parser.add_argument('--weight', default=0.000, type=float, help='weight decay for clustering')
     parser.add_argument('--sched_step', default=200, type=int, help='scheduler steps for rate update')

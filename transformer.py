@@ -160,10 +160,10 @@ class Transformer(nn.Module):
                     'attention': MultiheadAttention(
                         d_token, n_heads, attention_dropout, initialization
                     ),
-                    # 'linear0': nn.Linear(
-                    #     d_token, d_hidden * (2 if activation.endswith('glu') else 1)
-                    # ),
-                    # 'linear1': nn.Linear(d_hidden, d_token),
+                    'linear0': nn.Linear(
+                        d_token, d_hidden * (2 if activation.endswith('glu') else 1)
+                    ),
+                    'linear1': nn.Linear(d_hidden, d_token),
                     'norm1': make_normalization(),
                 }
             )
@@ -217,7 +217,7 @@ class Transformer(nn.Module):
             x = x_num
 
         for layer_idx, layer in enumerate(self.layers):
-            is_last_layer = layer_idx == len(self.layers)
+            is_last_layer = layer_idx + 1 == len(self.layers)
             layer = ty.cast(ty.Dict[str, nn.Module], layer)
 
             x_residual = self._start_residual(x, layer, 0)
@@ -227,23 +227,23 @@ class Transformer(nn.Module):
                 x_residual,
                 *self._get_kv_compressions(layer),
             )
-        #     if is_last_layer:
-        #         x = x[:, : x_residual.shape[1]]
-        #     x = self._end_residual(x, x_residual, layer, 0)
-        #
-        #     x_residual = self._start_residual(x, layer, 1)
-        #     x_residual = layer['linear0'](x_residual)
-        #     x_residual = self.activation(x_residual)
-        #     if self.ffn_dropout:
-        #         x_residual = F.dropout(x_residual, self.ffn_dropout, self.training)
-        #     x_residual = layer['linear1'](x_residual)
-        #     x = self._end_residual(x, x_residual, layer, 1)
-        #
-        # assert x.shape[1] == 1
-        # x = x[:, 0]
-        # if self.last_normalization is not None:
-        #     x = self.last_normalization(x)
-        # x = self.last_activation(x)
-        # x = self.head(x)
-        # x = x.squeeze(-1)
-        return x_residual
+            if is_last_layer:
+                x = x[:, : x_residual.shape[1]]
+            x = self._end_residual(x, x_residual, layer, 0)
+
+            x_residual = self._start_residual(x, layer, 1)
+            x_residual = layer['linear0'](x_residual)
+            x_residual = self.activation(x_residual)
+            if self.ffn_dropout:
+                x_residual = F.dropout(x_residual, self.ffn_dropout, self.training)
+            x_residual = layer['linear1'](x_residual)
+            x = self._end_residual(x, x_residual, layer, 1)
+
+        assert x.shape[1] == 1
+        x = x[:, 0]
+        if self.last_normalization is not None:
+            x = self.last_normalization(x)
+        x = self.last_activation(x)
+        x = self.head(x)
+        x = x.squeeze(-1)
+        return x

@@ -210,15 +210,15 @@ class TractGraphormer(nn.Module): #number of parameters: 1158722
         # The initialization is inspired by nn.Linear
         nn_init.kaiming_uniform_(self.weight_cls, a=math.sqrt(5))
         nn_init.kaiming_uniform_(self.bias_cls, a=math.sqrt(5))
-        self.transformer = Transformer(n_layers=1,d_token=features_len,n_heads=n_heads,n_tokens=input_len,d_out=num_classses,d_ffn_factor=1.333333333333333,attention_dropout=0.1,ffn_dropout=0,residual_dropout=0,activation='reglu', prenormalization=True,initialization='kaiming',kv_compression=0.064,kv_compression_sharing='headwise') #,kv_compression=0.064,kv_compression_sharing='headwise'
+        self.transformer = Transformer(n_layers=1,d_token=features_len,n_heads=n_heads,n_tokens=input_len+1,d_out=num_classses,d_ffn_factor=1.333333333333333,attention_dropout=0.1,ffn_dropout=0,residual_dropout=0,activation='reglu', prenormalization=True,initialization='kaiming',kv_compression=0.064,kv_compression_sharing='headwise') #,kv_compression=0.064,kv_compression_sharing='headwise'
 
-        def get_position_angle_vec(position):
-            return [position / numpy.power(10000, 2 * (hid_j // 2) / features_len) for hid_j in range(features_len)]
-
-        sinusoid_table = numpy.array([get_position_angle_vec(pos_i) for pos_i in range(input_len+1)])
-        sinusoid_table[:, 0::2] = numpy.sin(sinusoid_table[:, 0::2])  # dim 2i
-        sinusoid_table[:, 1::2] = numpy.cos(sinusoid_table[:, 1::2])  # dim 2i+1
-        self.pos_table=torch.FloatTensor(sinusoid_table).unsqueeze(0).to(device)
+        # def get_position_angle_vec(position):
+        #     return [position / numpy.power(10000, 2 * (hid_j // 2) / features_len) for hid_j in range(features_len)]
+        #
+        # sinusoid_table = numpy.array([get_position_angle_vec(pos_i) for pos_i in range(input_len+1)])
+        # sinusoid_table[:, 0::2] = numpy.sin(sinusoid_table[:, 0::2])  # dim 2i
+        # sinusoid_table[:, 1::2] = numpy.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+        # self.pos_table=torch.FloatTensor(sinusoid_table).unsqueeze(0).to(device)
 
     def forward(self, x):
         idx=self.idx
@@ -253,18 +253,19 @@ class TractGraphormer(nn.Module): #number of parameters: 1158722
         # x = F.relu(self.bn6(self.linear1(x)))
         # out = self.linear3(x)
 
-        # x_cls1=torch.ones(x.shape[0], 1, device=x.device)
-        # x_cls2=self.weight_cls[None] * x_cls1[:, :, None]
-        # x_cls=x_cls2+self.bias_cls[None]
+        x_cls1=torch.ones(x.shape[0], 1, device=x.device)
+        x_cls2=self.weight_cls[None] * x_cls1[:, :, None]
+        x_cls=x_cls2+self.bias_cls[None]
         x_token=x.transpose(2,1)
-        # x_t=torch.cat([x_cls,x_token],dim=1)
+        x_t=torch.cat([x_cls,x_token],dim=1)
         #add position
         #x_t=x_t*self.pos_table[:, :x_t.size(1)].clone().detach()
-        x=self.transformer(x_token)
-        x=x.transpose(2,1)
-        x = x.reshape(x.size(0), -1)
-        x = F.relu(self.bn6(self.linear1(x)))
-        out = self.linear3(x)
+        out=self.transformer(x_t)
+        # flatten
+        # x=x.transpose(2,1)
+        # x = x.reshape(x.size(0), -1)
+        # x = F.relu(self.bn6(self.linear1(x)))
+        # out = self.linear3(x)
         return out
 
 # class DGCNN(nn.Module): #number of parameters: 1158722
