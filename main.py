@@ -56,12 +56,12 @@ if __name__ == '__main__':
         help='folder of edge definitions.')
     parser.add_argument('--task', default='sex', choices=['external','internal','sex'], help='task')
     parser.add_argument('--type', default='binary', choices=['multi-class', 'binary'], help='task')
-    parser.add_argument('--feature', default=['Nos','FA1'], nargs='+',help='task')
+    parser.add_argument('--feature', default=['all'], nargs='+',help='task')
     parser.add_argument('--CUDA_id', default='0', choices=['0', '1','2','3'], help='choose cuda')
     parser.add_argument('--data_id', default='0', choices=['0','1', '2', '3'], help='data_id')
     parser.add_argument('--dataset', default='Classification', choices=['Classification','Classification_sample'], help='data resample')
     parser.add_argument('--norm', default=True, type=str2bool, help='whether to do feature normalization')
-    parser.add_argument('--channels', default=1, type=int, help='number of input channels')
+    #parser.add_argument('--channels', default=1, type=int, help='number of input channels')
     parser.add_argument('--epochs', default=400, type=int, help='training epochs')
     parser.add_argument('--tensorboard', default=True, type=bool, help='export training stats to tensorboard')
     parser.add_argument('--net_architecture', default='TractGraphormer', choices=['CNN_1D','DGCNN','TractGraphormer','TractGraphormerG','GCN','GCN1','PointNet','PointTrans','PointTrans1','Braingnn','DGCNNG'], help='network architecture used')
@@ -77,7 +77,11 @@ if __name__ == '__main__':
     parser.add_argument('--remix_tau', default=0, type=float, help='parameter for redmix')
     parser.add_argument('--loss', default='CE', choices=['CE','CS_CE','SCS_CE','BSCE','CDT'], help='loss type')
     parser.add_argument('--sigma', default=0, type=float, help='parameter for Guassian noise')
-    parser.add_argument('--k', default=20, type=int, help='k for dgcnn')
+    parser.add_argument('--k', default=22, type=int, help='k for dgcnn')
+    parser.add_argument('--fl', default=64, type=int, help='feature length')
+    # tranformer
+    parser.add_argument('--nh', default=1, type=int, help='number of heads for TractGraphormer')
+
     args = parser.parse_args()
 
     #setup_seed(args.seed)
@@ -91,7 +95,7 @@ if __name__ == '__main__':
     epochs = args.epochs
     print_freq = args.printing_frequency
     sched_gamma = args.sched_gamma
-    channels=args.channels
+    channels=len(args.feature)
     features=args.feature
 
     # Directories
@@ -155,8 +159,6 @@ if __name__ == '__main__':
     # Report for settings
     tmp = "Training the '" + model_name + "' architecture"
     utils.print_both(f, tmp)
-    tmp = "\n" + "The following parameters are used:"
-    utils.print_both(f, tmp)
     tmp = "Batch size:\t" + str(batch)
     utils.print_both(f, tmp)
     tmp = "Number of workers:\t" + str(workers)
@@ -201,7 +203,7 @@ if __name__ == '__main__':
     if len(args.feature)==1:
         if args.feature==['all']:
             X=x_arrays
-            channels=5
+            channels = 5
         else:
             if args.feature==['Nos']:
                 X = x_arrays[:,:,0]
@@ -214,10 +216,10 @@ if __name__ == '__main__':
             elif args.feature == ['MD2']:
                 X = x_arrays[:, :,4]
             X=numpy.expand_dims(X,axis=2)
-            channels=1
     elif len(args.feature)==2:
         X = x_arrays[:,:,0:2]
-        channels = 2
+    elif len(args.feature)==3:
+        X = x_arrays[:,:,0:3]
 
     if args.net_architecture=='PointNet' or args.net_architecture == 'PointTrans'\
             or args.net_architecture == 'PointTrans1':
@@ -236,7 +238,7 @@ if __name__ == '__main__':
 
     print(args.seed)
     print(X.shape)
-    #x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+    #x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=args.seed)
     x_tv, x_test, y_tv, y_test = train_test_split(X, y, test_size=0.2, random_state=args.seed)
     x_train, x_val, y_train, y_val = train_test_split(x_tv, y_tv, test_size=1/8, random_state=args.seed)
 
@@ -306,7 +308,10 @@ if __name__ == '__main__':
         idx = idx_matrix[:, :args.k]
         idx=torch.from_numpy(idx).to(device)
         idx = idx.repeat(batch, 1, 1)
-        to_eval = "nets." + model_name + "(input_channel=channels,input_len=X.shape[1],num_classses=num_class,k=args.k,idx=idx)"
+        if args.net_architecture=='TractGraphormer':
+            to_eval = "nets." + model_name + "(input_channel=channels,input_len=X.shape[1],features_len=args.fl,num_classses=num_class,k=args.k,idx=idx,n_heads=args.nh,device=device)"
+        else:
+            to_eval = "nets." + model_name + "(input_channel=channels,input_len=X.shape[1],features_len=args.fl,num_classses=num_class,k=args.k,idx=idx,device=device)"
     elif args.net_architecture == 'DGCNNAG' or args.net_architecture == 'DGCNNG' or args.net_architecture == 'DGCNNAMG' or args.net_architecture=='TractGraphormerG':
         idx = numpy.load(args.DisFile)
         print('load ' + args.DisFile)
@@ -328,7 +333,7 @@ if __name__ == '__main__':
             model_name = 'DGCNNA'
         elif args.net_architecture == 'DGCNNAMG':
             model_name = 'DGCNNAM'
-        to_eval = "nets." + model_name + "(input_channel=channels,input_len=X.shape[1],num_classses=num_class,k=k,idx=idx)"
+        to_eval = "nets." + model_name + "(input_channel=channels,input_len=X.shape[1],num_classses=num_class,k=k,idx=idx,device=device)"
     elif args.net_architecture == 'GCN':
         edge_index=numpy.load('data/edge_indexes_40.npy')
         edge_weight = numpy.load('data/edge_weights_40.npy')
@@ -368,19 +373,23 @@ if __name__ == '__main__':
     def get_parameter_number(model):
         total_num = sum(p.numel() for p in model.parameters())
         trainable_num = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print('Total', total_num, 'Trainable', trainable_num)
-    get_parameter_number(model)
+        #print('Total', total_num, 'Trainable', trainable_num)
+        return total_num,trainable_num
+    total_num,trainable_num=get_parameter_number(model)
+    tmp = "\n" + 'Total number of parameters:' + str(total_num) + '  Trainable:'+ str(trainable_num)
+    utils.print_both(f, tmp)
 
     model = model.to(device)
 
     #load pretrained model
-    model_dict = model.state_dict()
-    model_pre=torch.load('/home/yuqian/hdrive/tabular-dl-revisiting-models/reproduce/ft_transformer_EP/checkpoint.pt')
-    pretrained_dict=model_pre['model']
-    dict_dis=['transformer.layers.0.key_compression.weight','transformer.layers.0.value_compression.weight','transformer.head.weight','transformer.head.bias']
-    loaded_dict = {('transformer.'+ k): v for k, v in pretrained_dict.items() if ('transformer.'+ k) in model_dict and ('transformer.'+ k) not in dict_dis}
-    model_dict.update(loaded_dict)
-    model.load_state_dict(model_dict)
+    if args.net_architecture == 'TractGraphormer' or args.net_architecture=='TractGraphormerG':
+        model_dict = model.state_dict()
+        model_pre=torch.load('/home/yuqian/hdrive/tabular-dl-revisiting-models/reproduce/ft_transformer_EP_2000/checkpoint.pt')
+        pretrained_dict=model_pre['model']
+        dict_dis=['transformer.layers.0.key_compression.weight','transformer.layers.0.value_compression.weight','transformer.head.weight','transformer.head.bias']
+        loaded_dict = {('transformer.'+ k): v for k, v in pretrained_dict.items() if ('transformer.'+ k) in model_dict and ('transformer.'+ k) not in dict_dis}
+        model_dict.update(loaded_dict)
+        model.load_state_dict(model_dict)
 
     #model = torch.nn.DataParallel(model, device_ids=[0, 1, 2,3])
     #criteria = nn.NLLLoss(size_average=True)

@@ -48,8 +48,8 @@ class CNN_1D(nn.Module):  #number of parameters 12363266
         out = self.classifier(x)
         return out
 
-def get_graph_feature(x, k, idx):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+def get_graph_feature(x, k, idx,device='cpu'):
+    #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     batch_size = x.size(0)
     num_points = x.size(2)
     x = x.view(batch_size, -1, num_points)
@@ -70,7 +70,7 @@ def get_graph_feature(x, k, idx):
 
 class DGCNN(nn.Module): #number of parameters: 1158722
     # from DGCNN's repo
-    def __init__(self, input_channel=3,input_len=1516,features_len=64,num_classses=3,k=5,idx=None):
+    def __init__(self, input_channel=3,input_len=1516,features_len=64,num_classses=3,k=5,idx=None,device='cpu'):
         super(DGCNN, self).__init__()
         self.k = k
         self.bn1 = nn.BatchNorm2d(64)
@@ -98,15 +98,29 @@ class DGCNN(nn.Module): #number of parameters: 1158722
             print('original idx')
         else:
             print('redefined idx')
-
+        self.device=device
 
     def forward(self, x):
         batch_size = x.size(0)
-        x = get_graph_feature(x, k=self.k,idx=self.idx)
+        idx = self.idx
+        # #data augmentation-feature corruption; works for transformer
+        # batch_size = x.size(0)
+        # fl=x.size(2)
+        # for i in range(batch_size):
+        #     for j in range(x.size(1)):
+        #         corruption_idx = torch.randperm(fl)[: int(fl*0.02)]
+        #         replace_idx = torch.randperm(fl)[: int(fl * 0.02)]
+        #         x[i,j,corruption_idx]=x[i,j,replace_idx]
+
+        # data augmentation-graph construction; works for DGCNN
+        inds=torch.randperm(self.k)[: 2]
+        idx[:,:,inds]=0
+
+        x = get_graph_feature(x, k=self.k,idx=self.idx,device=self.device)
         x = self.conv1(x)
         x1 = x.max(dim=-1, keepdim=False)[0]
 
-        x = get_graph_feature(x1, k=self.k,idx=self.idx)
+        x = get_graph_feature(x1, k=self.k,idx=self.idx,device=self.device)
         x = self.conv2(x)
         x2 = x.max(dim=-1, keepdim=False)[0]
 
@@ -159,7 +173,7 @@ class PointNet(nn.Module):
 
 class TractGraphormer(nn.Module): #number of parameters: 1158722
     # from DGCNN's repo
-    def __init__(self, input_channel=3,input_len=1516,features_len=64,num_classses=3,k=5,idx=None,weights=None):
+    def __init__(self, input_channel=3,input_len=1516,features_len=64,num_classses=3,k=5,idx=None,n_heads=1,weights=None,device='cpu'):
         # input_channel: number of features; input_len: number of clusters; features_len: parameters of the network; k: number of edges (idx.shape[1]); idx: edge matrix; weights: edge weights, use default here.
         super(TractGraphormer, self).__init__()
         self.k = k
@@ -189,23 +203,45 @@ class TractGraphormer(nn.Module): #number of parameters: 1158722
         else:
             print('redefined idx')
         self.weights=weights
-
+        self.device=device
         #transformer
         self.weight_cls = nn.Parameter(Tensor(1, features_len))
         self.bias_cls = nn.Parameter(Tensor(1, features_len))
         # The initialization is inspired by nn.Linear
         nn_init.kaiming_uniform_(self.weight_cls, a=math.sqrt(5))
         nn_init.kaiming_uniform_(self.bias_cls, a=math.sqrt(5))
-        self.transformer = Transformer(n_layers=1,d_token=features_len,n_heads=1,n_tokens=input_len+1,d_out=num_classses,d_ffn_factor=1.333333333333333,attention_dropout=0.1,ffn_dropout=0,residual_dropout=0,activation='reglu', prenormalization=True,initialization='kaiming',kv_compression=0.064,kv_compression_sharing='headwise')
+        self.transformer = Transformer(n_layers=1,d_token=features_len,n_heads=n_heads,n_tokens=input_len,d_out=num_classses,d_ffn_factor=1.333333333333333,attention_dropout=0.1,ffn_dropout=0,residual_dropout=0,activation='reglu', prenormalization=True,initialization='kaiming',kv_compression=0.064,kv_compression_sharing='headwise') #,kv_compression=0.064,kv_compression_sharing='headwise'
+
+        def get_position_angle_vec(position):
+            return [position / numpy.power(10000, 2 * (hid_j // 2) / features_len) for hid_j in range(features_len)]
+
+        sinusoid_table = numpy.array([get_position_angle_vec(pos_i) for pos_i in range(input_len+1)])
+        sinusoid_table[:, 0::2] = numpy.sin(sinusoid_table[:, 0::2])  # dim 2i
+        sinusoid_table[:, 1::2] = numpy.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+        self.pos_table=torch.FloatTensor(sinusoid_table).unsqueeze(0).to(device)
 
     def forward(self, x):
-        batch_size = x.size(0)
-        x = get_graph_feature(x, k=self.k,idx=self.idx)
+        idx=self.idx
+
+        # #data augmentation-feature corruption; works for transformer
+        # batch_size = x.size(0)
+        # fl=x.size(2)
+        # for i in range(batch_size):
+        #     for j in range(x.size(1)):
+        #         corruption_idx = torch.randperm(fl)[: int(fl*0.02)]
+        #         replace_idx = torch.randperm(fl)[: int(fl * 0.02)]
+        #         x[i,j,corruption_idx]=x[i,j,replace_idx]
+
+        # # data augmentation-graph construction; works for DGCNN
+        # inds=torch.randperm(self.k)[: 2]
+        # idx[:,:,inds]=0
+
+        x = get_graph_feature(x, k=self.k,idx=idx,device=self.device)
         x = self.conv1(x)
         if self.weights is not None:
             x=x*self.weights
         x1 = x.max(dim=-1, keepdim=False)[0]
-        x = get_graph_feature(x1, k=self.k,idx=self.idx)
+        x = get_graph_feature(x1, k=self.k,idx=idx,device=self.device)
         x = self.conv2(x)
         if self.weights is not None:
             x=x*self.weights
@@ -217,12 +253,18 @@ class TractGraphormer(nn.Module): #number of parameters: 1158722
         # x = F.relu(self.bn6(self.linear1(x)))
         # out = self.linear3(x)
 
-        x_cls1=torch.ones(x.shape[0], 1, device=x.device)
-        x_cls2=self.weight_cls[None] * x_cls1[:, :, None]
-        x_cls=x_cls2+self.bias_cls[None]
+        # x_cls1=torch.ones(x.shape[0], 1, device=x.device)
+        # x_cls2=self.weight_cls[None] * x_cls1[:, :, None]
+        # x_cls=x_cls2+self.bias_cls[None]
         x_token=x.transpose(2,1)
-        x_t=torch.cat([x_cls,x_token],dim=1)
-        out=self.transformer(x_t)
+        # x_t=torch.cat([x_cls,x_token],dim=1)
+        #add position
+        #x_t=x_t*self.pos_table[:, :x_t.size(1)].clone().detach()
+        x=self.transformer(x_token)
+        x=x.transpose(2,1)
+        x = x.reshape(x.size(0), -1)
+        x = F.relu(self.bn6(self.linear1(x)))
+        out = self.linear3(x)
         return out
 
 # class DGCNN(nn.Module): #number of parameters: 1158722
